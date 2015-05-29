@@ -5,11 +5,12 @@
 # Brought to you by ShorTie	<idiot@dot.com> 
 
 sdcard=/dev/sda  			# Leave blank or remark out to make image, determinism whether to make image or sdcard
-#write_image_to_sdcard=yes	# Remark out or leave blank to not have image writen to sdcard_device at end of making an image
 image_name=my_pi_os.img 	# For safty sakes, always provide a name Pleaze
 image_size=1234  			# 888 is enough for a Basic install, 1234 is needed for a desktop install
-#LDXE_desktop=yes 			# Install a basic LXDE Desktop
+#write_image_to_sdcard=yes	# Remark out or leave blank to not have image writen to sdcard_device at end of making an image
 sdcard_device=/dev/sda  	# If making an image, it will write image to this device at the end of image creation if defined
+#LDXE_desktop=yes 			# Install a basic LXDE Desktop
+#install_alsa=yes 			# Install and configure alsa for sound
 
 release=wheezy
 #release=jessie
@@ -379,7 +380,7 @@ else
     loop_device=$(kpartx -av $image_name | grep p2 | cut -d" " -f8 | awk '{print$1}')
     echo -n "Loop device is "
     echo $loop_device
-    echo -n "\n\nPartprobing $thingy\n"
+    echo -e "\n\nPartprobing $thingy\n"
     partprobe $loop_device
     echo ""
     bootpart=$(echo $loop_device | grep dev | cut -d"/" -f3 | awk '{print$1}')p1
@@ -760,6 +761,27 @@ cat sdcard/etc/modprobe.d/ipv6.conf
 echo " "
 
 # end Networking
+
+# Install and configure alsa for sound
+echo -e "\n\nConfigure alsa for sound\n"
+if [ "$install_alsa" == "yes" ]; then
+    rasp_stuff+=" alsa-utils"
+    cat <<\EOF > sdcard/etc/asound.conf
+pcm.mmap0 {
+    type mmap_emul;
+    slave {
+      pcm "hw:0,0";
+    }
+}
+pcm.!default {
+  type plug;
+  slave {
+    pcm mmap0;
+  }
+}
+EOF
+
+fi
 
 # Update and install raspberrypi-bootloader
 echo -e "\n\nUpdate install and install raspberrypi-bootloader and other stuff\n"
