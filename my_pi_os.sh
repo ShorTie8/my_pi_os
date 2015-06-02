@@ -781,6 +781,8 @@ pcm.!default {
 }
 EOF
 
+echo 'snd_bcm2835' >> sdcard/etc/modules
+
 fi
 
 # Update and install raspberrypi-bootloader
